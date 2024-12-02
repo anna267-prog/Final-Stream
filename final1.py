@@ -52,11 +52,26 @@ else:
 #Inquire about second site visit 
 st.markdown(''':blue[Next Stop]''')
 nextstop_interest = st.selectbox("Are you interested in visiting another historical site?", ("Yes","No"), index=None, placeholder="Select option...")
+
+time_frame = None
+distance_frame = None
 if nextstop_interest == "Yes":
     time_frame = st.selectbox("How long would you like to spend at this new site?", ("< 10 min", "10-30 min", "30-60 min", "60-90 min", "90-120 min", "> 120 min"), index=None, placeholder="Select a time...")
     distance_frame = st.selectbox("For how long are you willing to travel to your next site?", ("< 10 min", "10-20 min", "20-30 min", "30-40 min", "40-50 min", "50-60+ min"), index=None, placeholder="Select a time...")
+    #OpenAI to provide suggestions for new site to visit based on time and distance constraints 
+    from openai import OpenAI
+    openai_api_key = "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"
+    client = OpenAI(api_key=openai_api_key)
 
-#Locate User's Current Location (Latitude and Longitude) Using Geocode API
-import requests
-response = requests.get("https://ipgeolocation.abstractapi.com/v1/?api_key=c9de433eaecd422092efb08d014aa7de&ip_address=2607:f470:6:3001:80bb:b3a:6b60:e253&fields=longitude,latitude")
+    user_input = f'I am a visitor to this Philadelphia historical site {site}. I am willing to travel for this amount of time: {distance_frame} and I would like to spend around {time_frame} at this location. Can you provide one suggestion of another historical site that I cna visit with these parameters?'
+    response = client.chat.completions.create(
+        model = "gpt-4o-mini",
+        messages = [
+            {"role": "system", "content": "You are a helpful tour guide in Philadelphia helping visitors find historical sites to visit. The user will provide you with a site they are currently visiting and parameters for the type of site they would like to visit next."},
+            {"role": "user", "content": user_input}
+        ]
+    )
+    st.write(response.choices[0].message.content)
+elif nextstop_interest == "No":
+    st.write(f'Thank you so much for using History Helper:Philadelphia!!! We hope you this information added to your experience at {site}! Please feel free to come back and inquire about another site any time!')
 
